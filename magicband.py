@@ -23,6 +23,7 @@ from json import dumps
 from httplib2 import Http
 import threading
 import atexit
+from datetime import date
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
@@ -232,10 +233,12 @@ class BandScannerAndSound(cli.CommandLineInterface):
         self.scannedEvent.set()
         sequence = getSequence(bandid)
 #        print("Playing sound")
-        self.playSound(sequence.get('spin_sound'))
-        while not self.successEvent.isSet():
-            continue
-        self.playSound(sequence.get('sound'))
+        if self.playTodaysSound() == False:
+            self.playSound(sequence.get('spin_sound'))
+            while not self.successEvent.isSet():
+                continue
+            self.playSound(sequence.get('sound'))
+
         self.runWebHook(sequence)
 
     def runWebHook(self, sequence):
@@ -262,6 +265,14 @@ class BandScannerAndSound(cli.CommandLineInterface):
             return False
 #        print("Found file: " + fname)
         return True
+
+    def playTodaysSound():
+        today = date.today()
+        stringDate = today.strftime("%m%d")
+        if self.loadSound("dailysounds/"+stringDate+".mp3") == True:
+            playSound("dailysounds/"+stringDate+".mp3")
+            return True
+        return False
 
     # play sound
     def playSound(self, fname):
