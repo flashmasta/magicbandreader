@@ -6,7 +6,7 @@ import binascii
 import logging
 import hashlib
 import struct
-# import ndef
+#import ndef
 import hmac
 import cli
 import sys
@@ -23,10 +23,13 @@ from json import dumps
 from httplib2 import Http
 import threading
 import atexit
-from datetime import date
+import RPi.GPIO as GPIO
+import MFRC522
+import signal
+
+DEBUG = True
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-
 config = configobj.ConfigObj('settings.conf')
 print_band_id = config['Settings']['print_band_id']
 reverse_circle = config['Settings']['reverse_circle']
@@ -74,8 +77,19 @@ pygame.init()
 totalPixels = ring_pixels+mickey_pixels
 
 currentBandId = ""
+repeatCount = 0
+repeatBandId = ""
+repeatTime = time.time()
+whiteIdleActive = True
 
 pixels = neopixel.NeoPixel(pixel_pin, totalPixels, brightness=0.9, auto_write=False, pixel_order=neopixel.GRB)
+
+# Capture SIGINT for cleanup when the script is aborted
+def end_read(signal,frame):
+    if (DEBUG):
+        print ("Ctrl+C captured, ending read.")
+    GPIO.cleanup()
+    sys.exit()
 
 def playLightSequence(magicBandScannedEvent, successEvent, ringPixels, totalPixels):
     lightSpeed = .1
@@ -83,9 +97,13 @@ def playLightSequence(magicBandScannedEvent, successEvent, ringPixels, totalPixe
     if reverse_circle == 'True':
         pixelRingArray.reverse()
     global pixels
-    #print("Playing light sequence")
-
+    if (DEBUG):
+        print("Playing light sequence")
+    
+    global whiteIdleActive
     while True:
+        if (not whiteIdleActive) and (not magicBandScannedEvent.isSet()):
+            continue
         if not magicBandScannedEvent.isSet():
             lightSpeed = .1
         else:
@@ -109,7 +127,6 @@ def playLightSequence(magicBandScannedEvent, successEvent, ringPixels, totalPixe
             if magicBandScannedEvent.isSet():
                 sequence = getSequence(currentBandId)
                 color = COLORS[sequence.get('color_ring')]
-
             if color == COLORS['rainbow']:
                 rainbowCycle(1, 1)
                 successEvent.set()
@@ -186,7 +203,8 @@ def exit_handler():
 
 def printArray(arr):
     for i in range(len(arr)):
-        print ("%d"% arr[i],end=" ")
+        if (DEBUG):
+            print ("%d"% arr[i],end=" ")
 
 def fadePixel(out, pixel, color):
     if out:
@@ -195,10 +213,12 @@ def fadePixel(out, pixel, color):
         return color
 
 def getSequence(bandid):
-    sequences = config['bands'].get(bandid) or config['bands']['unknown']
+    sequences = config['bands'].get(str(bandid)) or config['bands']['unknown']
     if sequences:
         sequences = sequences if type(sequences) == list else [sequences,]
         sequence = config['sequences'][random.choice(sequences)]
+        if (DEBUG):
+            print("getsequences = " + str(sequences))
         return sequence
 
 class MagicBand():
@@ -206,40 +226,60 @@ class MagicBand():
         self.success = True
         self.successSequence = []
 
-class BandScannerAndSound(cli.CommandLineInterface):
+class BandScannerAndSound():
     def __init__(self, scannedEvent, successEvent):     
-#        print("Started Scanner")
+        if (DEBUG):
+            print("Scanning")
         self.scannedEvent = scannedEvent
         self.successEvent = successEvent
-        self.rdwr_commands = { }
 
-        parser = ArgumentParser(
-                formatter_class=argparse.RawDescriptionHelpFormatter,
-                description="")
-        super(BandScannerAndSound, self).__init__(parser, groups="rdwr dbg card clf")
+        # Scan for cards
+        uid = [0,0,0,0,0]
+        bandid = 0
+        (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
-    def on_rdwr_startup(self, targets):
-        return targets
+        # If a card is found
+        if status == MIFAREReader.MI_OK:
+            (status,uid) = MIFAREReader.MFRC522_Anticoll()
+            HexUID = format(int(uid[0]),'02X') + format(int(uid[1]),'02X') + format(int(uid[2]),'02X') + format(int(uid[3]),'02X') + format(int(uid[4]),'02X')
+            bandid = int(HexUID,16)
+            if (DEBUG):
+                print("MagicBandId = " + str(bandid))
 
-    def on_rdwr_connect(self, tag):
         if self.scannedEvent.isSet():
             return
-        bandid = str(binascii.hexlify(tag.identifier),"utf-8") 
-        if print_band_id == 'True':
-            print("MagicBandId = " + bandid)
-
-        global currentBandId
-        currentBandId = bandid
-        self.scannedEvent.set()
-        sequence = getSequence(bandid)
-#        print("Playing sound")
-        if self.playTodaysSound() == False:
+        if (bandid != 0):
+            global repeatBandId
+            global repeatTime
+            global repeatCount
+            if (repeatBandId == str(bandid)):
+                if (time.time()-repeatTime <60):
+                    repeatCount = repeatCount + 1
+                if (time.time()-repeatTime >=60):
+                    repeatTime = time.time()
+                    repeatCount = 1
+                if (repeatCount == 3):
+                    print ("Still Running - Toggle White Spinner")
+                    global whiteIdleActive
+                    whiteIdleActive = not whiteIdleActive
+                if (repeatCount == 5):
+                    print ("Powering Down System")
+                    repeatCount = 0
+            else:
+                repeatTime = time.time()
+                repeatCount = 1
+                repeatBandId = str(bandid)
+            global currentBandId
+            currentBandId = bandid
+            self.scannedEvent.set()
+            sequence = getSequence(bandid)
+            if (DEBUG):
+                print("Playing sound")
             self.playSound(sequence.get('spin_sound'))
             while not self.successEvent.isSet():
                 continue
             self.playSound(sequence.get('sound'))
-
-        self.runWebHook(sequence)
+            self.runWebHook(sequence)
 
     def runWebHook(self, sequence):
         webhooks = sequence.get('webhooks', [])
@@ -255,7 +295,6 @@ class BandScannerAndSound(cli.CommandLineInterface):
                 )
                 print(response)
 
-
     # Preload sound
     def loadSound(self, fname):
         if fname == '':
@@ -263,35 +302,20 @@ class BandScannerAndSound(cli.CommandLineInterface):
         if not path.exists(fname):
             print("Missing sound file :" + fname)
             return False
-#        print("Found file: " + fname)
+        if (DEBUG):
+            print("Found file: " + fname)
         return True
-
-    def playTodaysSound():
-        today = date.today()
-        stringDate = today.strftime("%m%d")
-        if self.loadSound("dailysounds/"+stringDate+".mp3") == True:
-            playSound("dailysounds/"+stringDate+".mp3")
-            return True
-        return False
 
     # play sound
     def playSound(self, fname):
         if self.loadSound(fname) == True:
- #           print("Playing sound now")
+            if (DEBUG):
+                print("Playing sound now")
             pygame.mixer.music.load(fname)
             pygame.mixer.music.set_volume(1)
             pygame.mixer.music.play()
-  #          while pygame.mixer.get_busy() == True:
-   #             time.sleep(1)
-
-    def on_card_startup(self, target):
-        # Nothing needed
-        log.info("Listening for magicbands")
-
-    def run(self):
-        while self.run_once():
-            log.info('.')
-
+#           while pygame.mixer.get_busy() == True:
+#               time.sleep(1)
 
 class ArgparseError(SystemExit):
     def __init__(self, prog, message):
@@ -306,22 +330,28 @@ class ArgumentParser(argparse.ArgumentParser):
 
 if __name__ == '__main__':
     atexit.register(exit_handler)
+
+    # Hook the SIGINT and create an object of MFRC522 for the card reader
+    signal.signal(signal.SIGINT, end_read)
+    MIFAREReader = MFRC522.MFRC522()
+
     magicBandScannedEvent = threading.Event()
     successEvent = threading.Event()
     magicBandObject = MagicBand()
     
     try:
         lightsThread = threading.Thread(name='lights',
-                target=playLightSequence, args=(magicBandScannedEvent, successEvent, ring_pixels, ring_pixels+mickey_pixels), daemon = True)
-
+            target=playLightSequence, args=(magicBandScannedEvent, successEvent, ring_pixels, ring_pixels+mickey_pixels), daemon = True)
         lightsThread.start()
-        bandAndSound = BandScannerAndSound(magicBandScannedEvent, successEvent)
-        bandAndSound.run()
+        while True:
+            bandAndSound = BandScannerAndSound(magicBandScannedEvent, successEvent)
         lightsThread.join()
 
     except ArgparseError as e:
         print("exception")
         print(e)
         _prog = e.args[1].split()
+
     else:
         sys.exit(0)
+
