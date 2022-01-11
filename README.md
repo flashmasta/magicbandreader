@@ -49,6 +49,10 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 * sudo reboot now
 * log back into pi
 * vi /home/pi/settings.conf. and edit the led counts for your build
+* Make monitor hot-plug and force HMDI sound with: sudo vi /boot/config.txt
+  * remove # from the front of hdmi_foce_hotplug=1
+  * remove # from the front of hdmi_drive=2
+  * at the end, add: enable_hdmi_sound 
 * sudo vi /etc/rc.local
   * Before the exit 0 line add:
   * (cd /home/pi; sudo python3 magicband.py &)
