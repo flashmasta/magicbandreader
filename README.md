@@ -4,7 +4,7 @@ Use webhook URLS to turn on lights or unlock locks.
 
 # Fork Updates
 This forks works with NON-USB RFID readers--the cheap US$3 ones found on aucton sites.  It requires modified installation activities and hardware connections.  Those changes are made in the rest of this README.  This was done on a RPi 3B running the FULL Raspbian load on a 64GB memory card.  I am sure that much space is not necessary.
-
+r
 # NOTE
 Sound files are no longer included. Either supply your own mp3 sound files or contact us through youtube for more information.
 
@@ -50,7 +50,7 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 * log back into pi
 * vi /home/pi/settings.conf. and edit the led counts for your build
 * Make monitor hot-plug and force HMDI sound with: sudo vi /boot/config.txt
-  * remove # from the front of hdmi_foce_hotplug=1
+  * remove # from the front of hdmi_force_hotplug=1
   * remove # from the front of hdmi_drive=2
   * at the end, add: enable_hdmi_sound 
 * sudo vi /etc/rc.local
