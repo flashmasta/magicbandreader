@@ -21,6 +21,7 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 # New Features in this Fork
 * If you scan the same magic band 3 times (after each light sequence has completed) within 60 seconds it will toggle on-and-off the spinning white light.  The reader will still function as expected when a band is read.
 * If you scan the same magic band 5 times (after each light sequence has completed) within 60 seconds it will start the RPi shutdown process.
+* If you are going to play with the code, turn on and off debug messages by changing the value of DEBUG at the top of the code.
 
 # New Features (From previous fork)
 * All configurations are now stored in settings.conf file instead of editing the python file directly.
