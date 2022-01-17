@@ -3,7 +3,7 @@ Reads magic bands and plays sounds and lights up leds, just like the real thing.
 Use webhook URLS to turn on lights or unlock locks.
 
 # Fork Updates
-This forks works with NON-USB RFID readers--the cheap US$3 ones found on aucton sites.  It requires modified installation activities and hardware connections.  Those changes are made in the rest of this README.  This was done on a RPi 3B running the FULL Raspbian load on a 64GB memory card.  I am sure that much space is not necessary.  This version also DOES NOT require the HDMI port for sound. Yup!!  Use the on-board 3.5mm headphone jack and don't buy the HDMI-to-Audio cable.
+This forks works with NON-USB RFID readers--the cheap US$3 ones found on aucton sites.  It requires modified installation activities and hardware connections.  Those changes are made in the rest of this README.  This was done on a RPi 3B running the FULL Raspbian load on a 64GB memory card.  I am sure that much space is not necessary.  This version also does NOT require the HDMI port for sound. Yup!!  Use the on-board 3.5mm headphone jack and don't buy the HDMI-to-Audio cable.
 
 # NOTE
 Sound files are no longer included. Either supply your own mp3 sound files or contact us through youtube for more information.
@@ -19,6 +19,7 @@ sudo sh install.sh.
 BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences configurations! You'll need to migrate any old configurations that were stored in the magicband.py file to the new settings.conf file.
 
 # New Features in this Fork
+* No need for HDMI sound.  Use the onboard 3.5mm headphone port.
 * If you scan the same magic band 3 times (after each light sequence has completed) within 60 seconds it will toggle on-and-off the spinning white light.  The reader will still function as expected when a band is read.
 * If you scan the same magic band 5 times (after each light sequence has completed) within 60 seconds it will start the RPi shutdown process.
 * If you are going to play with the code, turn on and off debug messages by changing the value of DEBUG at the top of the code.
