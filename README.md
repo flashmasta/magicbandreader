@@ -3,8 +3,8 @@ Reads magic bands and plays sounds and lights up leds, just like the real thing.
 Use webhook URLS to turn on lights or unlock locks.
 
 # Fork Updates
-This forks works with NON-USB RFID readers--the cheap US$3 ones found on aucton sites.  It requires modified installation activities and hardware connections.  Those changes are made in the rest of this README.  This was done on a RPi 3B running the FULL Raspbian load on a 64GB memory card.  I am sure that much space is not necessary.
-r
+This forks works with NON-USB RFID readers--the cheap US$3 ones found on aucton sites.  It requires modified installation activities and hardware connections.  Those changes are made in the rest of this README.  This was done on a RPi 3B running the FULL Raspbian load on a 64GB memory card.  I am sure that much space is not necessary.  This version also DOES NOT require the HDMI port for sound. Yup!!  Use the on-board 3.5mm headphone jack and don't buy the HDMI-to-Audio cable.
+
 # NOTE
 Sound files are no longer included. Either supply your own mp3 sound files or contact us through youtube for more information.
 
@@ -32,7 +32,7 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 #Basic wiring:
 * Connect PIXEL LEDS to  DATA on GPIO-18 (pin 12), pixel GnD to GND (pin 6) and pixel positive to +5v (pin 2)
 * Connect cheap RFID reader to RPi BUS as described in my MFRC522 repository.  Its 7 wires, and soldering is encouraged.
-* Connect Speaker via HDMI connector (ONBOARD SPEAKER WILL NOT WORK DUE TO Pixel LEDS!)
+* Connect Speaker via 3.5mm headphone connector
 
 # Installation
 
