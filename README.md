@@ -72,12 +72,9 @@ Note: if you are using the older videos to follow along, the main difference wit
 
 The coolest part of this is that you can make it actually do something in your home.  You just need to have the right setup.  I accomplished this with a second RPi (an RPI4) running Home Assistant and the NodeRed addon.  To save you some work, I am including some details to help you out.  Getting HA and NodeRed setup and running are beyond the scope of this effort.
 * Import the flows.json file from this fork into NodeRed.  The key part here is that I figured out how to recieve the webhook.  You will still need to tweak a few things, like changin an IP address or two and BandID's.  The nice thing here is that once you get it up and running, if it reads a bandId it doesn't know, you can look in the debugger for the number and code it to do something.
-* You also need to update the settings.conf file.  In each of the band profiles, there is a 'webhook:' entry.  Notice there is nothing else on that line.  You need to change every instance where you want an action to occur.  Change all of them (with your Home Assistant IP address) to look something like:   webhooks = http://[HA IP ADDRESS]:1800/endpoint/MBReader
+* You also need to update the settings.conf file.  In each of the band profiles, there is a 'webhook:' entry.  Notice there is nothing else on that line.  You need to change every instance where you want an action to occur.  Change all of them (with your Home Assistant IP address) to look something like:   webhooks = http://[HA IP ADDRESS]:1880/endpoint/MBReader
 
 # Troubleshooting
 
 If the install fails, try running this command first:
 sudo apt-get update
-
-
-
