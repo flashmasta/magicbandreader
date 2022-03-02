@@ -8,7 +8,7 @@ This forks works with NON-USB RFID readers--the cheap US$3 ones found on auction
 # NOTE
 Sound files are no longer included. Either supply your own mp3 sound files or contact us through youtube for more information.
 
-# 3D Printer pieces:
+# 3D Printer pieces
 Find the pieces to make this model on thingiverse:
 https://www.thingiverse.com/thing:4271417
 
@@ -23,6 +23,7 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 * If you scan the same magic band 3 times (after each light sequence has completed) within 60 seconds it will toggle on-and-off the spinning white light.  The reader will still function as expected when a band is read.
 * If you scan the same magic band 5 times (after each light sequence has completed) within 60 seconds it will start the RPi shutdown process.
 * If you are going to play with the code, turn on and off debug messages by changing the value of DEBUG at the top of the code.
+* So, you want to make your magic bands turn on and off your house lights or something else???  So did I!!  This fork now includes details on how to get there.  See below!
 
 # New Features (From previous fork)
 * All configurations are now stored in settings.conf file instead of editing the python file directly.
@@ -66,6 +67,12 @@ Note: if you are using the older videos to follow along, the main difference wit
 
 * Set the ring_pixels and mickey_pixel counts to the correct value
 * If you have any magic bands and want special lights and sounds, update the settigns file.  Use the MyReader.py file to get the magicband ID.  Read it a couple times.  Notice that the last 2-3 digits change.  Ignore those and just use the ones that don't change.
+
+# Home Assistant and Node Red
+
+The coolest part of this is that you can make it actually do something in your home.  You just need to have the right setup.  I accomplished this with a second RPi (an RPI4) running Home Assistant and the NodeRed addon.  To save you some work, I am including some details to help you out.  Getting HA and NodeRed setup and running are beyond the scope of this effort.
+* Import the flows.json file from this fork into NodeRed.  The key part here is that I figured out how to recieve the webhook.  You will still need to tweak a few things, like changin an IP address or two and BandID's.  The nice thing here is that once you get it up and running, if it reads a bandId it doesn't know, you can look in the debugger for the number and code it to do something.
+* You also need to update the settings.py file.  In each of the band profiles, there is a 'webhook:' entry.  Notice there is nothing else on that line.  You need to change every instance where you want an action to occur.  Change all of them (with your Home Assistant IP address) to look something like:   webhooks:  http://[HA IP ADDRESS]:1800/endpoint/MBReader
 
 # Troubleshooting
 
