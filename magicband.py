@@ -21,6 +21,7 @@ import random
 import configobj
 from json import dumps
 from httplib2 import Http
+import urllib
 import threading
 import atexit
 import RPi.GPIO as GPIO
@@ -287,18 +288,24 @@ class BandScannerAndSound():
             self.runWebHook(sequence)
 
     def runWebHook(self, sequence):
+        global currentBandId
         webhooks = sequence.get('webhooks', [])
+        message_data={}
         if webhooks:
             webhooks = webhooks if type(webhooks) == list else [webhooks,]
             for hook in webhooks:
-                message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
+                message_headers = {'Authorization': 'Bearer rNGlneNGSgnLqHpuR7ZRPXc3oSHix7tqwRgw8vST1sA', 'Content-Type': 'application/json; charset=UTF-8'}
+                message_body="{\"Band\": \"%s\"}" %str(currentBandId)
+                if (DEBUG):
+                    print(message_data)
                 http_obj = Http()
                 response = http_obj.request(
                     uri=hook,
                     method='POST',
                     headers=message_headers,
-                )
-                print(response)
+                    body=message_body)
+                if (DEBUG):
+                    print(response)
 
     # Preload sound
     def loadSound(self, fname):
