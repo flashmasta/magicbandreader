@@ -44,7 +44,6 @@ BACKUP YOUR magicband.py BEFORE UPGRADING so you don't lose you sequences config
 * sudo apt-get upgrade
 * sudo apt install git
 * pull down this git repository: git clone https://github.com/texasmouse/magicbandreader.git
-* and you need two files (MFRC522.py and MyReader.py) from this repository: git clone https://github.com/texasmouse/MFRC522.git.  Put those two files in the same directory as the MagicBandReader files.
 * cd magicbandreader
 * sudo sh install.sh  (this will take awhile)
 * install the SPI library: sudo pip3 install git+https://github.com/lthiery/SPI-Py
